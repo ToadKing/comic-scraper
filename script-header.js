@@ -10,3 +10,4 @@
 // @run-at      document-start
 // ==/UserScript==
 (function() {
+"use strict";

@@ -32,7 +32,7 @@ var metadata;
 // (we could just use the jQuery object but it looks like they try to hide $ so jQuery being exposed is probably an oversight)
 var observer = new MutationObserver(function(mutations) {
   for (var i = 0; i < mutations.length; i++) {
-    mutation = mutations[i];
+    var mutation = mutations[i];
     if (mutation.target.id == "reader") {
       observer.disconnect();
       observer = null;
@@ -57,6 +57,11 @@ function loadImage(url, cb) {
   GM_xmlhttpRequest({
     method: "GET",
     url: url,
+    headers: {
+      "Accept": "*/*",
+      "Referer": window.location.toString().split("#")[0],
+      "Origin": window.location.origin
+    },
     onload: function(res) { cb(res.responseText); },
     onerror: function() { cb(null); }
   });
@@ -84,7 +89,7 @@ function doDownload() {
   var errors = [];
   var zip = new JSZip();
 
-  save = function() {
+  var save = function() {
     var content = zip.generate({ type: "blob" });
     if (errors.length) {
       alert("Errors saving the following pages: " + JSON.stringify(errors));
@@ -94,11 +99,11 @@ function doDownload() {
 
   for (var i = 0; i < metadata.book_info.pages.length; i++) {
     /*jshint -W083 */
-    (function(panel) {
-      var filename = (panel.length == 1 ? "0" + panel : panel) + ".jpg";
-      var page = metadata.book_info.pages[panel];
-      var imgData = page.descriptor_set.image_descriptors[1];
-      var id = panelId(panel);
+    (function(page) {
+      var filename = "000".substr(page.length) + page + ".jpg";
+      var pageData = metadata.book_info.pages[page];
+      var imgData = pageData.descriptor_set.image_descriptors[pageData.descriptor_set.image_descriptors.length - 1];
+      var id = panelId(page);
 
       loadImage(imgData.uri + "&s=" + id, function(data) {
         if (data) {

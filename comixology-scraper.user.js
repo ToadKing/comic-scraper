@@ -10,6 +10,7 @@
 // @run-at      document-start
 // ==/UserScript==
 (function() {
+"use strict";
 
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
@@ -318,7 +319,7 @@ var metadata;
 // (we could just use the jQuery object but it looks like they try to hide $ so jQuery being exposed is probably an oversight)
 var observer = new MutationObserver(function(mutations) {
   for (var i = 0; i < mutations.length; i++) {
-    mutation = mutations[i];
+    var mutation = mutations[i];
     if (mutation.target.id == "reader") {
       observer.disconnect();
       observer = null;
@@ -343,6 +344,11 @@ function loadImage(url, cb) {
   GM_xmlhttpRequest({
     method: "GET",
     url: url,
+    headers: {
+      "Accept": "*/*",
+      "Referer": window.location.toString().split("#")[0],
+      "Origin": window.location.origin
+    },
     onload: function(res) { cb(res.responseText); },
     onerror: function() { cb(null); }
   });
@@ -370,7 +376,7 @@ function doDownload() {
   var errors = [];
   var zip = new JSZip();
 
-  save = function() {
+  var save = function() {
     var content = zip.generate({ type: "blob" });
     if (errors.length) {
       alert("Errors saving the following pages: " + JSON.stringify(errors));
@@ -380,11 +386,11 @@ function doDownload() {
 
   for (var i = 0; i < metadata.book_info.pages.length; i++) {
     /*jshint -W083 */
-    (function(panel) {
-      var filename = (panel.length == 1 ? "0" + panel : panel) + ".jpg";
-      var page = metadata.book_info.pages[panel];
-      var imgData = page.descriptor_set.image_descriptors[1];
-      var id = panelId(panel);
+    (function(page) {
+      var filename = "000".substr(page.length) + page + ".jpg";
+      var pageData = metadata.book_info.pages[page];
+      var imgData = pageData.descriptor_set.image_descriptors[pageData.descriptor_set.image_descriptors.length - 1];
+      var id = panelId(page);
 
       loadImage(imgData.uri + "&s=" + id, function(data) {
         if (data) {
@@ -419,7 +425,7 @@ function doDownload() {
 
 // decrypt image base64
 function key(id) {
-  idPlusSha1 = btoa(id + hex_sha1(id));
+  var idPlusSha1 = btoa(id + hex_sha1(id));
   return unique(idPlusSha1.split("")).join("");
 }
 
@@ -442,14 +448,14 @@ function decryptImageJson(encrypted, id) {
 }
 
 // move image tiles around
-var X = 4;
+var NUMTILES = 4;
 var OFFSET = 10;
 
 function imageAreas(id) {
   var sha1Key = hex_sha1(key(id));
   var areas = range(0, 16);
   var splitKey = sha1Key.split("").reverse();
-  for (var i = 2 * X - 1; i >= 0; i--) {
+  for (var i = 2 * NUMTILES - 1; i >= 0; i--) {
     for (var j = 0; j < splitKey.length; j += 2) {
       if (splitKey[j] !== splitKey[j + 1]) {
         var b1 = parseInt(splitKey[j], 16) + i;
@@ -468,10 +474,10 @@ function imageAreas(id) {
     }
   }
 
-  // split into a 4x4 array
+  // split into a NUMTILESxNUMTILES array
   var ret = [];
   while (areas.length) {
-    ret.push(areas.splice(0, X));
+    ret.push(areas.splice(0, NUMTILES));
   }
   return ret;
 }
@@ -485,9 +491,8 @@ function decodeImage(encrypted, id, dim, cb) {
     canvas.style.display = "none";
     document.body.appendChild(canvas);
     var areas = imageAreas(id);
-    var cellWidth = Math.ceil(dim.pixel_width / X);
-    var cellHeight = Math.ceil(dim.pixel_height / X);
-    var u = dim.J || 0; // is this ever not 0?
+    var cellWidth = Math.ceil(dim.pixel_width / NUMTILES);
+    var cellHeight = Math.ceil(dim.pixel_height / NUMTILES);
 
     for (var row = 0; row < areas.length; row++) {
       var r = areas[row];
@@ -495,13 +500,13 @@ function decodeImage(encrypted, id, dim, cb) {
 
       for (var column = 0; column < r.length; column++) {
         var cell = r[column];
-        var sourceX = cell % X * (cellWidth + 2 * OFFSET) + OFFSET;
-        var sourceY = Math.floor(cell / X) * (cellHeight + 2 * OFFSET) + OFFSET;
-        var destX = column * cellWidth + u;
-        var n = column === X - 1 ? 1 : 0;
-        var h = row === X - 1 ? 1 : 0;
+        var sourceX = cell % NUMTILES * (cellWidth + 2 * OFFSET) + OFFSET;
+        var sourceY = Math.floor(cell / NUMTILES) * (cellHeight + 2 * OFFSET) + OFFSET;
+        var destX = column * cellWidth;
+        var widthOffset = column === NUMTILES - 1 ? 1 : 0;
+        var heightOffset = row === NUMTILES - 1 ? 1 : 0;
 
-        drawImage.call(getContext.call(canvas, "2d"), image, sourceX, sourceY, cellWidth - n, cellHeight - h, destX, destY, cellWidth - n, cellHeight - h);
+        drawImage.call(getContext.call(canvas, "2d"), image, sourceX, sourceY, cellWidth - widthOffset, cellHeight - heightOffset, destX, destY, cellWidth - widthOffset, cellHeight - heightOffset);
       }
     }
 
@@ -515,7 +520,7 @@ function decodeImage(encrypted, id, dim, cb) {
   image.src = "data:image/jpeg;base64," + decryptImageJson(encrypted, id);
 }
 
-replacementTable = function() {
+var replacementTable = function() {
   var secretCodes = "055077086102122 090114108053048 049081069073078 068097107110080 072075076089120 118074079100070 121066065084111 054098116112099 087088106067085 113109047119105 052101117082104 071050057115103 083051056043061";
   var base64chars = [].concat(range(65, 91), range(97, 123), range(48, 58), 43, 47, 61).map(function(c){return String.fromCharCode(c);});
   var replacements = secretCodes.split(" ").join("").match(/.../g).map(function(c){return String.fromCharCode(parseInt(c, 10));});
