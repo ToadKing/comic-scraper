@@ -1,0 +1,15 @@
+{
+  "name": "comixology-scraper",
+  "description": "Comixology Scraper",
+  "version": "1.0.0",
+  "license": "MIT",
+  "devDependencies": {
+    "npm-build-tools": "latest",
+    "jshint": "latest"
+  },
+  "scripts": {
+    "lint": "jshint main.js imagedecoder.js jsondecoder.js",
+    "build": "npm run lint && npm run build:src",
+    "build:src": "n-concat script-header.js libs/sha1.min.js libs/jszip.min.js libs/FileSaver.js main.js imagedecoder.js jsondecoder.js script-footer.js | n-pipe comixology-scraper.user.js"
+  }
+}
