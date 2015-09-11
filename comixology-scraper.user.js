@@ -313,8 +313,6 @@ function object(keys, vals) {
 }
 
 var metadata;
-var seriesid;
-var itemid;
 
 // watch for nodes and grab the metadata before the page tries to hide it
 // (we could just use the jQuery object but it looks like they try to hide $ so jQuery being exposed is probably an oversight)
@@ -325,9 +323,6 @@ var observer = new MutationObserver(function(mutations) {
       observer.disconnect();
       observer = null;
       metadata = parseMetadataJson(mutation.target.getAttribute("data-metadata"));
-      window.metadata = metadata;
-      seriesid = mutation.target.getAttribute("data-seriesid");
-      itemid = mutation.target.getAttribute("data-itemid");
       insert_button();
       return;
     }
@@ -354,7 +349,7 @@ function loadImage(url, cb) {
 }
 
 function panelId(panel) {
-  return [seriesid, (+panel + 2), itemid].join("");
+  return [metadata.issue_info.series.series_id, (+panel + 2), metadata.comic_id].join("");
 }
 
 function insert_button() {
