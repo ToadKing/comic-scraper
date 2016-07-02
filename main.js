@@ -3,6 +3,10 @@ var toDataURL = HTMLCanvasElement.prototype.toDataURL;
 var getContext = HTMLCanvasElement.prototype.getContext;
 var drawImage = CanvasRenderingContext2D.prototype.drawImage;
 
+// progress bar
+var progress = null;
+var progress_text = null;
+
 // quick-n-dirty versions of underscore.js functions
 function range(start, end) {
   var ret = [];
@@ -83,55 +87,102 @@ function insert_button() {
   document.body.appendChild(btn);
 }
 
+function insert_progress_bar() {
+  if (progress === null) {
+    progress = document.createElement("div");
+    progress.style.position = "absolute";
+    progress.style.top = "30px";
+    progress.style.left = 0;
+    progress.style.background = "white";
+    progress.style.zIndex = 999;
+    progress.style.width = "300px";
+    progress.style.height = "20px";
+    progress.style.textAlign = "center";
+    progress.style.transform = "rotateZ(0deg)";
+    document.body.appendChild(progress);
+    progress_text = document.createElement("span");
+    progress_text.style.font = "16px serif";
+    progress_text.style.mixBlendMode = "difference";
+    progress_text.style.color = "white";
+    progress.appendChild(progress_text);
+  }
+}
+
+function update_progress_bar(percent) {
+  if (progress !== null) {
+    var percent_text = (percent * 100) + "%";
+    progress.style.background = "linear-gradient(to right, green " + percent_text + ", white " + percent_text + ")";
+  }
+}
+
+function remove_progress_bar() {
+  if (progress !== null) {
+    document.body.removeChild(progress);
+    progress = null;
+    progress_text = null;
+  }
+}
+
+function set_progress_text(text) {
+  if (progress_text !== null) {
+    progress_text.textContent = text;
+  }
+}
+
 function doDownload() {
   var done = 0;
   var todo = metadata.book_info.pages.length;
   var errors = [];
   var zip = new JSZip();
 
+  insert_progress_bar();
+  set_progress_text("Downloading");
+
   var save = function() {
-    var content = zip.generate({ type: "blob" });
-    if (errors.length) {
-      alert("Errors saving the following pages: " + JSON.stringify(errors));
-    }
-    saveAs(content, "book.cbz");
+    set_progress_text("Saving");
+
+    setTimeout(function() {
+      if (errors.length) {
+        alert("Errors saving the following pages: " + JSON.stringify(errors));
+      }
+
+      zip.generateAsync({ type: "blob" }).then(function (content) {
+        saveAs(content, 'comic.cbz');
+        remove_progress_bar();
+      });
+    }, 0);
   };
 
-  for (var i = 0; i < metadata.book_info.pages.length; i++) {
-    /*jshint -W083 */
-    (function(page) {
-      var filename = "000".substr(page.length) + page + ".jpg";
-      var pageData = metadata.book_info.pages[page];
-      var imgData = pageData.descriptor_set.image_descriptors[pageData.descriptor_set.image_descriptors.length - 1];
-      var id = panelId(page);
+  var i = 0;
+  var next = function() {
+    var page = Number(i).toString();
+    var filename = "000".substr(page.length) + page + ".jpg";
+    var pageData = metadata.book_info.pages[page];
+    var imgData = pageData.descriptor_set.image_descriptors[pageData.descriptor_set.image_descriptors.length - 1];
+    var id = panelId(page);
 
-      loadImage(imgData.uri + "&s=" + id, function(data) {
-        if (data) {
-          if (!data) {
+    loadImage(imgData.uri + "&s=" + id, function(data) {
+      if (data) {
+        decodeImage(data, id, imgData, function(url) {
+          if (url) {
+            zip.file(filename, url.substr(url.indexOf(',') + 1), { base64: true });
+            console.log("saved " + filename);
+          } else {
             errors.push(filename);
             console.log("error saving " + filename);
-            done++;
-            if (done == todo) {
-              save();
-            }
           }
-
-          decodeImage(data, id, imgData, function(url) {
-            if (url) {
-              zip.file(filename, url.substr(url.indexOf(',') + 1), { base64: true });
-              console.log("saved " + filename);
-            } else {
-              errors.push(filename);
-              console.log("error saving " + filename);
-            }
-            done++;
-            if (done == todo) {
-              save();
-            }
-          });
-        }
-      });
-    })(Number(i).toString());
-  }
+          done++;
+          update_progress_bar(done / todo);
+          if (done === todo) {
+            save();
+          } else {
+            i++;
+            next();
+          }
+        });
+      }
+    });
+  };
+  next();
 
 }
