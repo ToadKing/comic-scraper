@@ -85,7 +85,7 @@ function decodeImage(encrypted, id, dim, cb) {
       }
     }
 
-    var ret = toDataURL.call(canvas, "image/jpeg", 1.0);
+    var ret = toDataURL.call(canvas, "image/jpeg", 0.92);
     document.body.removeChild(canvas);
     cb(ret);
   };
