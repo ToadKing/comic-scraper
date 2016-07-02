@@ -1,7 +1,7 @@
 {
   "name": "comixology-scraper",
   "description": "Comixology Scraper",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "license": "MIT",
   "devDependencies": {
     "npm-build-tools": "latest",
