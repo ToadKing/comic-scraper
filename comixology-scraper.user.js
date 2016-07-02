@@ -5,7 +5,7 @@
 // @include     https://www.comixology.com/comic-reader/*
 // @license     MIT
 // @source      https://github.com/ToadKing/comixology-scraper
-// @version     1.1.0
+// @version     1.2.0
 // @grant       GM_xmlhttpRequest
 // @run-at      document-start
 // ==/UserScript==
@@ -190,7 +190,15 @@ function doDownload() {
       }
 
       zip.generateAsync({ type: "blob" }).then(function (content) {
-        saveAs(content, 'comic.cbz');
+        var filename = metadata.issue_info.title;
+
+        if ('series' in metadata.issue_info && 'issue_num' in metadata.issue_info.series) {
+          filename = metadata.issue_info.series.title + " #" + metadata.issue_info.series.issue_num;
+        }
+
+        filename = filename.replace(/[/\\:*?"<>|]/g, "");
+
+        saveAs(content, filename + '.cbz');
         remove_progress_bar();
       });
     }, 0);

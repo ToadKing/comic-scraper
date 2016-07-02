@@ -5,7 +5,7 @@
 // @include     https://www.comixology.com/comic-reader/*
 // @license     MIT
 // @source      https://github.com/ToadKing/comixology-scraper
-// @version     1.1.1
+// @version     #VERSION#
 // @grant       GM_xmlhttpRequest
 // @run-at      document-start
 // ==/UserScript==
