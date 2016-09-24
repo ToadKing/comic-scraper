@@ -1,4 +1,4 @@
-// grab all the canvas prototypes we might need, comixology likes to stub some of them over
+// grab all the canvas prototypes we might need, in case they get stubbed over
 var toDataURL = HTMLCanvasElement.prototype.toDataURL;
 var getContext = HTMLCanvasElement.prototype.getContext;
 var drawImage = CanvasRenderingContext2D.prototype.drawImage;
