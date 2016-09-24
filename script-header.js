@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name        Comixology Scraper
+// @name        Comic Scraper
 // @namespace   scrape.dat.shit
-// @description Grab unobfuscated images form Comixology.
+// @description Grab unobfuscated images form comic websites.
 // @include     https://www.comixology.com/comic-reader/*
 // @license     MIT
-// @source      https://github.com/ToadKing/comixology-scraper
+// @source      https://github.com/ToadKing/comic-scraper
 // @version     #VERSION#
 // @grant       GM_xmlhttpRequest
 // @run-at      document-start

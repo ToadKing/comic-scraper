@@ -4,5 +4,5 @@ var replace = require('replace');
 replace({
     regex: "#VERSION#",
     replacement: version,
-    paths: ['comixology-scraper.user.js'],
+    paths: ['comic-scraper.user.js'],
 });
