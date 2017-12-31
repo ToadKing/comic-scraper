@@ -3,6 +3,7 @@
 // @namespace   scrape.dat.shit
 // @description Grab unobfuscated images form comic websites.
 // @include     https://www.comixology.com/comic-reader/*
+// @include     https://pocket.shonenmagazine.com/episode/*
 // @license     MIT
 // @source      https://github.com/ToadKing/comic-scraper
 // @version     #VERSION#
