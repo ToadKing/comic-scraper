@@ -1,10 +1,6 @@
 if (window.location.hostname == "www.comixology.com") {
 (function() {
 
-// progress bar
-var progress = null;
-var progress_text = null;
-
 var metadata;
 
 // watch for nodes and grab the metadata before the page tries to hide it
@@ -16,7 +12,7 @@ var observer = new MutationObserver(function(mutations) {
       observer.disconnect();
       observer = null;
       metadata = cmxgy_parseMetadataJson(mutation.target.getAttribute("data-metadata"));
-      insert_button();
+      insert_button(doDownload);
       return;
     }
   }
@@ -43,94 +39,16 @@ function panelId(panel) {
   return [metadata.issue_info.series.series_id, (+panel + 1), metadata.comic_id].join("");
 }
 
-function insert_button() {
-  var btn = document.createElement("button");
-  btn.textContent = "Download";
-  btn.style.position = "absolute";
-  btn.style.top = 0;
-  btn.style.left = 0;
-  btn.style.background = "white";
-  btn.style.zIndex = 999;
-  btn.onclick = doDownload;
-  document.body.appendChild(btn);
-}
-
-function insert_progress_bar() {
-  if (progress === null) {
-    progress = document.createElement("div");
-    progress.style.position = "absolute";
-    progress.style.top = "30px";
-    progress.style.left = 0;
-    progress.style.background = "white";
-    progress.style.zIndex = 999;
-    progress.style.width = "300px";
-    progress.style.height = "20px";
-    progress.style.textAlign = "center";
-    progress.style.transform = "rotateZ(0deg)";
-    document.body.appendChild(progress);
-    progress_text = document.createElement("span");
-    progress_text.style.font = "16px serif";
-    progress_text.style.mixBlendMode = "difference";
-    progress_text.style.color = "white";
-    progress.appendChild(progress_text);
-  }
-}
-
-function update_progress_bar(percent) {
-  if (progress !== null) {
-    var percent_text = (percent * 100) + "%";
-    progress.style.background = "linear-gradient(to right, green " + percent_text + ", white " + percent_text + ")";
-  }
-}
-
-function remove_progress_bar() {
-  if (progress !== null) {
-    document.body.removeChild(progress);
-    progress = null;
-    progress_text = null;
-  }
-}
-
-function set_progress_text(text) {
-  if (progress_text !== null) {
-    progress_text.textContent = text;
-  }
-}
-
 function doDownload() {
   var done = 0;
   var todo = metadata.book_info.pages.length;
   var errors = [];
-  var zip = new JSZip();
+  zip = new JSZip();
 
   insert_progress_bar();
   set_progress_text("Downloading");
 
-  var save = function() {
-    set_progress_text("Saving");
-
-    setTimeout(function() {
-      if (errors.length) {
-        alert("Errors saving the following pages: " + JSON.stringify(errors));
-      }
-
-      zip.generateAsync({ type: "blob" }).then(function (content) {
-        var filename = metadata.issue_info.title;
-
-        if ('series' in metadata.issue_info && 'issue_num' in metadata.issue_info.series) {
-          filename = metadata.issue_info.series.title + " #" + metadata.issue_info.series.issue_num;
-        }
-
-        filename = filename.replace(/[/\\:*?"<>|]/g, "");
-
-        saveAs(content, filename + '.cbz');
-        remove_progress_bar();
-      });
-    }, 0);
-  };
-
-  var i = 0;
-  var next = function() {
+  var promises = Array.from(new Array(todo), (_, i) => i).map((i) => new Promise((resolve, reject) => {
     var page = Number(i).toString();
     var filename = "000".substr(page.length) + page + ".jpg";
     var pageData = metadata.book_info.pages[page];
@@ -143,24 +61,28 @@ function doDownload() {
           if (url) {
             zip.file(filename, url.substr(url.indexOf(',') + 1), { base64: true });
             console.log("saved " + filename);
+            resolve(null);
           } else {
-            errors.push(filename);
             console.log("error saving " + filename);
+            resolve(filename);
           }
-          done++;
           update_progress_bar(done / todo);
-          if (done === todo) {
-            save();
-          } else {
-            i++;
-            next();
-          }
         });
       }
     });
-  };
-  next();
+  }));
 
+  Promise.all(promises).then((errors) => {
+    errors = errors.filter((e) => e !== null);
+
+    var filename = metadata.issue_info.title;
+
+    if ('series' in metadata.issue_info && 'issue_num' in metadata.issue_info.series) {
+      filename = metadata.issue_info.series.title + " #" + metadata.issue_info.series.issue_num;
+    }
+
+    save(filename, errors);
+  });
 }
 })();
 }
