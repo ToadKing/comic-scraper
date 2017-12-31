@@ -6,7 +6,7 @@
 // @include     https://pocket.shonenmagazine.com/episode/*
 // @license     MIT
 // @source      https://github.com/ToadKing/comic-scraper
-// @version     1.5.0
+// @version     2.0.0
 // @grant       none
 // @run-at      document-start
 // ==/UserScript==
