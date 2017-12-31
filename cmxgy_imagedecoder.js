@@ -1,12 +1,12 @@
 // decrypt image base64
-function key(id) {
+function cmxgy_key(id) {
   var idPlusSha1 = btoa(id + hex_sha1(id));
   return unique(idPlusSha1.split("")).join("");
 }
 
-function decryptImageJson(encrypted, id) {
+function cmxgy_decryptImageJson(encrypted, id) {
   var ret = [];
-  var keyBytes = key(id).split("");
+  var keyBytes = cmxgy_key(id).split("");
   var shiftedkeyBytes = keyBytes.slice(1);
   shiftedkeyBytes.push(keyBytes[0]);
   var table = object(shiftedkeyBytes, keyBytes);
@@ -26,8 +26,8 @@ function decryptImageJson(encrypted, id) {
 var NUMTILES = 4;
 var OFFSET = 10;
 
-function imageAreas(id) {
-  var sha1Key = hex_sha1(key(id));
+function cmxgy_imageAreas(id) {
+  var sha1Key = hex_sha1(cmxgy_key(id));
   var areas = range(0, 16);
   var splitKey = sha1Key.split("").reverse();
   for (var i = 2 * NUMTILES - 1; i >= 0; i--) {
@@ -57,7 +57,7 @@ function imageAreas(id) {
   return ret;
 }
 
-function decodeImage(encrypted, id, dim, cb) {
+function cmxgy_decodeImage(encrypted, id, dim, cb) {
   var image = new Image();
   image.onload = function() {
     var canvas = document.createElement("canvas");
@@ -65,7 +65,7 @@ function decodeImage(encrypted, id, dim, cb) {
     canvas.height = dim.pixel_height;
     canvas.style.display = "none";
     document.body.appendChild(canvas);
-    var areas = imageAreas(id);
+    var areas = cmxgy_imageAreas(id);
     var cellWidth = Math.ceil(dim.pixel_width / NUMTILES);
     var cellHeight = Math.ceil(dim.pixel_height / NUMTILES);
 
@@ -92,5 +92,5 @@ function decodeImage(encrypted, id, dim, cb) {
   image.onerror = function() {
     cb(null);
   };
-  image.src = "data:image/jpeg;base64," + decryptImageJson(encrypted, id);
+  image.src = "data:image/jpeg;base64," + cmxgy_decryptImageJson(encrypted, id);
 }

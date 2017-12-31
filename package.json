@@ -9,9 +9,9 @@
     "replace": "latest"
   },
   "scripts": {
-    "lint": "jshint main.js imagedecoder.js jsondecoder.js",
+    "lint": "jshint cmxgy.js cmxgy_imagedecoder.js cmxgy_jsondecoder.js",
     "build": "npm run lint && npm run build:src && npm run build:version",
-    "build:src": "n-concat script-header.js libs/sha1.min.js libs/jszip.min.js libs/FileSaver.min.js main.js imagedecoder.js jsondecoder.js script-footer.js | n-pipe comic-scraper.user.js",
+    "build:src": "n-concat script-header.js libs/sha1.min.js libs/jszip.min.js libs/FileSaver.min.js cmxgy.js cmxgy_imagedecoder.js cmxgy_jsondecoder.js script-footer.js | n-pipe comic-scraper.user.js",
     "build:version": "node scripts/version.js"
   }
 }

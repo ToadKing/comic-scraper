@@ -1,34 +1,9 @@
-// grab all the canvas prototypes we might need, in case they get stubbed over
-var toDataURL = HTMLCanvasElement.prototype.toDataURL;
-var getContext = HTMLCanvasElement.prototype.getContext;
-var drawImage = CanvasRenderingContext2D.prototype.drawImage;
+if (window.location.hostname == "www.comixology.com") {
+(function() {
 
 // progress bar
 var progress = null;
 var progress_text = null;
-
-// quick-n-dirty versions of underscore.js functions
-function range(start, end) {
-  var ret = [];
-  for (var i = start; i < end; i++) {
-    ret.push(i);
-  }
-  return ret;
-}
-
-function unique(arr) {
-  return arr.reverse().filter(function (e, i, arr) {
-    return arr.indexOf(e, i+1) === -1;
-  }).reverse();
-}
-
-function object(keys, vals) {
-  var ret = {};
-  for (var i = 0; i < keys.length && i < vals.length; i++) {
-    ret[keys[i]] = vals[i];
-  }
-  return ret;
-}
 
 var metadata;
 
@@ -40,7 +15,7 @@ var observer = new MutationObserver(function(mutations) {
     if (mutation.target.id == "reader") {
       observer.disconnect();
       observer = null;
-      metadata = parseMetadataJson(mutation.target.getAttribute("data-metadata"));
+      metadata = cmxgy_parseMetadataJson(mutation.target.getAttribute("data-metadata"));
       insert_button();
       return;
     }
@@ -164,7 +139,7 @@ function doDownload() {
 
     loadImage(imgData.uri, function(data) {
       if (data) {
-        decodeImage(data, id, imgData, function(url) {
+        cmxgy_decodeImage(data, id, imgData, function(url) {
           if (url) {
             zip.file(filename, url.substr(url.indexOf(',') + 1), { base64: true });
             console.log("saved " + filename);
@@ -186,4 +161,6 @@ function doDownload() {
   };
   next();
 
+}
+})();
 }

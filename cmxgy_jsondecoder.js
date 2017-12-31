@@ -1,4 +1,4 @@
-var replacementTable = function() {
+var cmxgy_replacementTable = function() {
   //var secretCodes = "055077086102122 090114108053048 049081069073078 068097107110080 072075076089120 118074079100070 121066065084111 054098116112099 087088106067085 113109047119105 052101117082104 071050057115103 083051056043061";
   //var replacements = secretCodes.split(" ").join("").match(/.../g).map(function(c){return String.fromCharCode(parseInt(c, 10));});
   var replacements = ["7", "M", "V", "f", "z", "Z", "r", "l", "5", "0", "1", "Q", "E", "I", "N", "D", "a", "k",
@@ -10,10 +10,10 @@ var replacementTable = function() {
   return object(replacements, base64chars);
 }();
 
-function parseMetadataJson(a) {
-  return JSON.parse(atob(decryptJson(a)));
+function cmxgy_parseMetadataJson(a) {
+  return JSON.parse(atob(cmxgy_decryptJson(a)));
 }
 
-function decryptJson(json) {
-  return json.split("").map(function(c){return replacementTable[c];}).join("");
+function cmxgy_decryptJson(json) {
+  return json.split("").map(function(c){return cmxgy_replacementTable[c];}).join("");
 }
