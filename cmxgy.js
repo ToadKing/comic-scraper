@@ -50,7 +50,7 @@ function doDownload() {
 
   var promises = Array.from(new Array(todo), (_, i) => i).map((i) => new Promise((resolve, reject) => {
     var page = Number(i).toString();
-    var filename = "000".substr(page.length) + page + ".jpg";
+    var filename = "000".substr(page.length) + page + "." + image_settings.ext;
     var pageData = metadata.book_info.pages[page];
     var imgData = pageData.descriptor_set.image_descriptors[pageData.descriptor_set.image_descriptors.length - 1];
     var id = panelId(page);
@@ -172,7 +172,7 @@ function cmxgy_decodeImage(encrypted, id, dim, cb) {
       }
     }
 
-    var ret = toDataURL.call(canvas, "image/jpeg", 0.92);
+    var ret = toDataURL.call(canvas, image_settings.type, image_settings.quality);
     document.body.removeChild(canvas);
     cb(ret);
   };

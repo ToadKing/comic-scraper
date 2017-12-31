@@ -47,7 +47,7 @@ function doDownload() {
 
   var promises = pages.map((p, i) => new Promise((resolve, reject) => {
     var page = Number(i).toString();
-    var filename = "000".substr(page.length) + page + ".jpg";
+    var filename = "000".substr(page.length) + page + "." + image_settings.ext;
 
     loadImage(p.src, function(image) {
       if (image) {
@@ -99,7 +99,7 @@ function shomag_decodeImage(image, prop, cb) {
     drawImage.call(getContext.call(canvas, "2d"), image, source_x, source_y, cell_width, cell_height, dest_x, dest_y, cell_width, cell_height);
   }
 
-  var ret = toDataURL.call(canvas, "image/jpeg", 0.92);
+  var ret = toDataURL.call(canvas, image_settings.type, image_settings.quality);
   document.body.removeChild(canvas);
   cb(ret);
 }

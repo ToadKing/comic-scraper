@@ -31,15 +31,70 @@ var progress = null;
 var progress_text = null;
 
 function insert_button(doDownload) {
+  var container = document.createElement("div");
+  container.style.zIndex = 999;
+  container.style.position = "absolute";
+  container.style.top = 0;
+  container.style.left = 0;
+  container.style.color = "red";
   var btn = document.createElement("button");
   btn.textContent = "Download";
-  btn.style.position = "absolute";
-  btn.style.top = 0;
-  btn.style.left = 0;
   btn.style.background = "white";
-  btn.style.zIndex = 999;
-  btn.onclick = doDownload;
-  document.body.appendChild(btn);
+  btn.onclick = function() {
+    update_image_settings();
+    doDownload();
+  };
+  var typeSel = document.createElement("select");
+  typeSel.id = "comic-scraper-type";
+  var jpgType = document.createElement("option");
+  jpgType.value = "image/jpeg";
+  jpgType.textContent = "JPG";
+  var pngType = document.createElement("option");
+  pngType.value = "image/png";
+  pngType.textContent = "PNG";
+  typeSel.appendChild(jpgType);
+  typeSel.appendChild(pngType);
+  typeSel.selectedIndex = 0;
+  var qualityInput = document.createElement("input");
+  qualityInput.id = "comic-scraper-quality";
+  qualityInput.type = "number";
+  qualityInput.min = "0";
+  qualityInput.max = "100";
+  qualityInput.value = "92";
+
+  container.appendChild(btn);
+  container.appendChild(document.createElement("br"));
+  container.appendChild(typeSel);
+  container.appendChild(document.createElement("br"));
+  container.appendChild(document.createTextNode("Quality: "));
+  container.appendChild(qualityInput);
+
+  document.body.appendChild(container);
+}
+
+var image_settings;
+
+function update_image_settings() {
+  var typeSel = document.getElementById("comic-scraper-type");
+  var type = typeSel.options[typeSel.selectedIndex].value;
+  var quality;
+  var ext;
+
+  if (type === "image/jpeg") {
+    quality = document.getElementById("comic-scraper-quality").value|0;
+    ext = "jpg";
+  } else {
+    quality = 100;
+    ext = "png";
+  }
+
+  var qualityFraction = Math.max(0, Math.min(quality, 100)) / 100;
+
+  image_settings = {
+    type: type,
+    ext: ext,
+    quality: qualityFraction,
+  };
 }
 
 function insert_progress_bar() {
