@@ -5,8 +5,8 @@
 // @include     https://www.comixology.com/comic-reader/*
 // @license     MIT
 // @source      https://github.com/ToadKing/comic-scraper
-// @version     1.3.0
-// @grant       GM_xmlhttpRequest
+// @version     1.4.0
+// @grant       none
 // @run-at      document-start
 // ==/UserScript==
 (function() {
@@ -101,21 +101,14 @@ document.addEventListener("DOMContentLoaded", function() {
 }, false);
 
 function loadImage(url, cb) {
-  GM_xmlhttpRequest({
-    method: "GET",
-    url: url,
-    headers: {
-      "Accept": "*/*",
-      "Referer": window.location.toString().split("#")[0],
-      "Origin": window.location.origin
-    },
-    onload: function(res) { cb(res.responseText); },
-    onerror: function() { cb(null); }
-  });
+  var req = new XMLHttpRequest();
+  req.open("GET", url);
+  req.addEventListener("loadend", function(res) { cb(req.responseText); }, false);
+  req.send();
 }
 
 function panelId(panel) {
-  return [metadata.issue_info.series.series_id, (+panel + 2), metadata.comic_id].join("");
+  return [metadata.issue_info.series.series_id, (+panel + 1), metadata.comic_id].join("");
 }
 
 function insert_button() {
@@ -212,7 +205,7 @@ function doDownload() {
     var imgData = pageData.descriptor_set.image_descriptors[pageData.descriptor_set.image_descriptors.length - 1];
     var id = panelId(page);
 
-    loadImage(imgData.uri + "&s=" + id, function(data) {
+    loadImage(imgData.uri, function(data) {
       if (data) {
         decodeImage(data, id, imgData, function(url) {
           if (url) {

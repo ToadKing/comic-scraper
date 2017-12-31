@@ -6,7 +6,7 @@
 // @license     MIT
 // @source      https://github.com/ToadKing/comic-scraper
 // @version     #VERSION#
-// @grant       GM_xmlhttpRequest
+// @grant       none
 // @run-at      document-start
 // ==/UserScript==
 (function() {
