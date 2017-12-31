@@ -88,6 +88,9 @@ function shomag_decodeImage(image, prop, cb) {
   var cell_width = Math.floor(prop.width / (CELLS_PER_SIDE * DIMENSION_MULTIPLE)) * DIMENSION_MULTIPLE;
   var cell_height = Math.floor(prop.height / (CELLS_PER_SIDE * DIMENSION_MULTIPLE)) * DIMENSION_MULTIPLE;
 
+  // do one full draw first, for the bottom/right edges of the page that aren't shuffled
+  drawImage.call(getContext.call(canvas, "2d"), image, 0, 0, prop.width, prop.height, 0, 0, prop.width, prop.height);
+
   for (var i = 0; i < CELLS_PER_SIDE * CELLS_PER_SIDE; i++) {
     var row = i % CELLS_PER_SIDE;
     var column = Math.floor(i / CELLS_PER_SIDE);
